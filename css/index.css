@@ -1,0 +1,68 @@
+@import url(https://fonts.googleapis.com/css?family=Verdana);
+body {
+  -webkit-font-smoothing: antialiased;
+  font: normal 14px 'Verdana',sans-serif;
+}
+
+.navbar {
+  background-color: #b0f2a9;
+  height: 50px;
+  width: 100%;
+  color: #000;
+  border-radius: 0;
+  border: none;
+  overflow: hidden;
+}
+
+.navbar-brand {
+  color: #000 !important;
+  font-weight: bold;
+  padding: none;
+  float: left;
+}
+
+/* ul {
+  list-style-type: none;
+  overflow: hidden;
+}
+
+li {
+  float: left;
+  overflow: hidden;
+}
+
+li a {
+  display: block; 
+  color: #333;
+  text-align: center;
+  padding: 16.5px 12px;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+li a:hover {
+  background-color: #3f6d3a;
+  color: #ffffff;
+  text-decoration: none;
+} */
+
+
+.navbar-fixed-top {
+  border: 0;
+  background-color: #2d373f;  
+  color: #edf2f7;
+}
+
+.p {
+  left: 0px;
+  top: 0px;
+}
+
+#minicanvas {
+  left: 0px;
+  top: 0px;
+  width: 150px;
+  height: 50px;
+  background-color: #fff;
+  color: #000;
+}
