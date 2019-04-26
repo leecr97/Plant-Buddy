@@ -14,49 +14,43 @@ import Mesh from './geometry/Mesh';
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
+  PlantType: 1,
   'Water Your Plant': waterPlant,
+  'Plant Seed': plantSeed,
+  PlantStatus: 0,
+  'Pause': pause,
 };
 
 let square: Square;
 let screenQuad: ScreenQuad;
 let time: number = 0.0;
 
-let axiom: string = "XF";
+let axiom: string = "FFX";
 let iterations: number = 0;
 let leaf: Mesh;
 let branch: Mesh;
 let dirt: Mesh;
 
 let plantHealth: number = 100;
+let scaleTrack: number = 5;
+let wilt: boolean = false;
 
-function loadScene() {
+let plantAlive: boolean = false;
+let plantType: number = 1;
+
+let paused: boolean = false;
+
+function loadDirt() {
   square = new Square();
   square.create();
   screenQuad = new ScreenQuad();
   screenQuad.create();
 
-  // let dirtobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/hw04-l-systems/master/src/obj/dirt.obj');
+  // let dirtobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/dirt.obj');
   let dirtobj: string = readTextFile('./src/obj/dirt.obj');
   dirt = new Mesh(dirtobj, vec3.fromValues(0,0,0));
   dirt.create();
 
-  // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/hw04-l-systems/master/src/obj/Branch.obj');
-  let branchobj: string = readTextFile('./src/obj/branch.obj');
-  branch = new Mesh(branchobj, vec3.fromValues(0,0,0));
-  branch.create();
-
-  // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/hw04-l-systems/master/src/obj/leaf.obj');
-  let leafobj: string = readTextFile('./src/obj/leaf.obj');
-  leaf = new Mesh(leafobj, vec3.fromValues(0,0,0));
-  leaf.create();
-
-  // lsystem
-  let ls : LSystem = new LSystem(axiom, iterations);
-  ls.parseLSystem();
-  let bData: mat4[] = ls.branchData;
-  let lData: mat4[] = ls.leafData;
-
-  // Set up instanced rendering data arrays here.
   let colorsArray : number[] = [];
   let col1Array : number[] = [];
   let col2Array : number[] = [];
@@ -68,7 +62,7 @@ function loadScene() {
   col1Array = [5, 0, 0, 0];
   col2Array = [0, 5, 0, 0];
   col3Array = [0, 0, 5, 0];
-  col4Array = [0, -25, 0, 1];
+  col4Array = [0, -30, 0, 1];
   let colors : Float32Array = new Float32Array(colorsArray);
   let col1 : Float32Array = new Float32Array(col1Array);
   let col2 : Float32Array = new Float32Array(col2Array);
@@ -76,6 +70,52 @@ function loadScene() {
   let col4 : Float32Array = new Float32Array(col4Array);
   dirt.setInstanceVBOs(colors, col1, col2, col3, col4);
   dirt.setNumInstances(1);
+}
+
+function loadPlant() {
+  if (plantType == 0) {
+    // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
+    let branchobj: string = readTextFile('./src/obj/branch.obj');
+    branch = new Mesh(branchobj, vec3.fromValues(0,0,0));
+    branch.create();
+
+    // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
+    let leafobj: string = readTextFile('./src/obj/leaf.obj');
+    leaf = new Mesh(leafobj, vec3.fromValues(0,0,0));
+    leaf.create();
+  }
+  else if (plantType == 1) {
+    // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
+    let branchobj: string = readTextFile('./src/obj/palmbranch.obj');
+    branch = new Mesh(branchobj, vec3.fromValues(0,0,0));
+    branch.create();
+
+    // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
+    let leafobj: string = readTextFile('./src/obj/palmleaf.obj');
+    leaf = new Mesh(leafobj, vec3.fromValues(0,0,0));
+    leaf.create();
+  }
+  else if (plantType == 2) {
+
+  }
+  
+  // lsystem
+  let ls : LSystem = new LSystem(axiom, iterations, scaleTrack, wilt, plantType);
+  ls.parseLSystem();
+  let bData: mat4[] = ls.branchData;
+  let lData: mat4[] = ls.leafData;
+
+  if (!plantAlive) {
+    bData = [];
+    lData = [];
+  }
+
+  // Set up instanced rendering data arrays here.
+  let colorsArray : number[] = [];
+  let col1Array : number[] = [];
+  let col2Array : number[] = [];
+  let col3Array : number[] = [];
+  let col4Array : number[] = [];
 
   // draw branches
   colorsArray = [];
@@ -110,16 +150,25 @@ function loadScene() {
     col4Array.push(t[15]);
 
     // color data
-    colorsArray.push(76.0 / 255.0);
-    colorsArray.push(56.0 / 255.0);
-    colorsArray.push(28.0 / 255.0);
-    colorsArray.push(1.0);
+    if (!wilt) {
+      colorsArray.push(76.0 / 255.0);
+      colorsArray.push(56.0 / 255.0);
+      colorsArray.push(28.0 / 255.0);
+      colorsArray.push(1.0);
+    }
+    else {
+      colorsArray.push(86.0 / 255.0);
+      colorsArray.push(81.0 / 255.0);
+      colorsArray.push(74.0 / 255.0);
+      colorsArray.push(1.0);
+    }
+    
   }
-  colors = new Float32Array(colorsArray);
-  col1 = new Float32Array(col1Array);
-  col2 = new Float32Array(col2Array);
-  col3 = new Float32Array(col3Array);
-  col4 = new Float32Array(col4Array);
+  let colors : Float32Array = new Float32Array(colorsArray);
+  let col1 : Float32Array = new Float32Array(col1Array);
+  let col2 : Float32Array = new Float32Array(col2Array);
+  let col3 : Float32Array = new Float32Array(col3Array);
+  let col4 : Float32Array = new Float32Array(col4Array);
   branch.setInstanceVBOs(colors, col1, col2, col3, col4);
   branch.setNumInstances(bData.length); 
 
@@ -130,7 +179,7 @@ function loadScene() {
   col3Array = [];
   col4Array = [];
 
-  console.log("leaves: " + lData.length);
+  // console.log("leaves: " + lData.length);
   for (let i: number = 0; i < lData.length; i++) {
     let t: mat4 = lData[i];
     // console.log(t);
@@ -157,10 +206,19 @@ function loadScene() {
     col4Array.push(t[15]);
 
     // color data
-    colorsArray.push(66.0 / 255.0);
-    colorsArray.push(124.0 / 255.0);
-    colorsArray.push(68.0 / 255.0);
-    colorsArray.push(1.0);
+    if (!wilt) {
+      colorsArray.push(66.0 / 255.0);
+      colorsArray.push(124.0 / 255.0);
+      colorsArray.push(68.0 / 255.0);
+      colorsArray.push(1.0);
+    }
+    else {
+      colorsArray.push(99.0 / 255.0);
+      colorsArray.push(112.0 / 255.0);
+      colorsArray.push(100.0 / 255.0);
+      colorsArray.push(1.0);
+    }
+    
   }
   colors = new Float32Array(colorsArray);
   col1 = new Float32Array(col1Array);
@@ -193,8 +251,26 @@ function updatePlantHealth(h : number) {
 }
 
 function waterPlant() {
+  console.log('water plant');
   plantHealth = 100;
   updatePlantHealth(100);
+  wilt = false;
+}
+
+function plantSeed() {
+  if (!plantAlive) {
+    console.log('plant seed');
+    plantAlive = true;
+    waterPlant();
+    loadPlant();
+  }
+  else {
+    // console.log("");
+  }
+}
+
+function pause() {
+  paused = !paused;
 }
 
 function main() {
@@ -209,7 +285,11 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
+  gui.add(controls, 'PlantType', { Tree: 0, 'Palm Tree': 1, Shrub: 2} );
   gui.add(controls, 'Water Your Plant');
+  gui.add(controls, 'Plant Seed');
+  gui.add(controls, 'PlantStatus');
+  gui.add(controls, 'Pause');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -222,10 +302,11 @@ function main() {
   setGL(gl);
 
   // Initial call to load scene
-  loadScene();
+  loadDirt();
+  loadPlant();
 
   // const camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
-  const camera = new Camera(vec3.fromValues(10, 20, 40), vec3.fromValues(0, 20, 0));
+  const camera = new Camera(vec3.fromValues(10, 20, 80), vec3.fromValues(0, 40, 0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.2, 0.2, 0.2, 1);
@@ -251,21 +332,51 @@ function main() {
     flat.setTime(time++);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
 
-    if (time % 100 == 0) {
-      // the plant grows steadily if it is healthy
-      if (plantHealth > 50 && iterations < 5) {
-        iterations += 1;
-        loadScene();
+    // update iteration every 100 ticks
+    if (plantAlive && !paused) {
+      if (time % 100 == 0) {
+        // the plant grows steadily if it is healthy
+        if (plantHealth > 50 && iterations < 5) {
+          iterations += 1;
+          loadPlant();
+        }
+        else if (plantHealth < 50 && iterations > 1) {
+          wilt = true;
+          iterations -= 1;
+          loadPlant();
+        }
       }
-      else if (plantHealth < 50 && iterations > 1) {
-        iterations -= 1;
-        loadScene();
+      // // update for scaling every 20 ticks
+      // if (time % 20 == 0) {
+      //   scaleTrack++;
+      //   scaleTrack = scaleTrack % 6;
+      //   // console.log(scaleTrack);
+      //   loadPlant();
+      // }
+      // decrement plant health every 20 ticks
+      if (time % 20 == 0 && plantHealth > 0) {
+        plantHealth -= 1;
+        updatePlantHealth(plantHealth);
+        if (plantHealth == 0) {
+          plantAlive = false;
+        }
       }
     }
-    if (time % 20 == 0 && plantHealth > 0) {
-      plantHealth -= 1;
-      updatePlantHealth(plantHealth);
+    
+    if (plantType != controls.PlantType) {
+      plantType = controls.PlantType;
+      if (plantType == 0) {
+        axiom = "FFFFFX";
+      }
+      else if (plantType == 1) {
+        axiom = "FFX";
+      }
+      else if (plantType == 2) {
+        axiom = "";
+      }
+      loadPlant();
     }
+    // if (plantStatus)
 
     renderer.clear();
     renderer.render(camera, flat, [screenQuad]);

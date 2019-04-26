@@ -65,7 +65,8 @@ void main() {
   float bg;
   generateBG(sun_pos, bg);
   vec3 col1 = vec3(255.0, 252.0, 175.0) / 255.0;
-  vec3 col2 = vec3(62.0, 104.0, 57.0) / 255.0;
+  // vec3 col2 = vec3(62.0, 104.0, 57.0) / 255.0;
+  vec3 col2 = vec3(119.0, 228.0, 249.0) / 255.0;
   vec3 col = mix(col1, col2, bg);
 
   out_Col = vec4(col, 1.0);

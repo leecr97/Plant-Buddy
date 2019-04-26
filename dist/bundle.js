@@ -6094,35 +6094,23 @@ const controls = {
 let square;
 let screenQuad;
 let time = 0.0;
-let axiom = "XF";
+let axiom = "FFFFFX";
 let iterations = 0;
 let leaf;
 let branch;
 let dirt;
 let plantHealth = 100;
-function loadScene() {
+let scaleTrack = 5;
+let wilt = false;
+function loadDirt() {
     square = new __WEBPACK_IMPORTED_MODULE_3__geometry_Square__["a" /* default */]();
     square.create();
     screenQuad = new __WEBPACK_IMPORTED_MODULE_4__geometry_ScreenQuad__["a" /* default */]();
     screenQuad.create();
-    // let dirtobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/hw04-l-systems/master/src/obj/dirt.obj');
+    // let dirtobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/dirt.obj');
     let dirtobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/dirt.obj');
     dirt = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](dirtobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
     dirt.create();
-    // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/hw04-l-systems/master/src/obj/Branch.obj');
-    let branchobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/branch.obj');
-    branch = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](branchobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
-    branch.create();
-    // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/hw04-l-systems/master/src/obj/leaf.obj');
-    let leafobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/leaf.obj');
-    leaf = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](leafobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
-    leaf.create();
-    // lsystem
-    let ls = new __WEBPACK_IMPORTED_MODULE_9__lsystem_LSystem__["a" /* default */](axiom, iterations);
-    ls.parseLSystem();
-    let bData = ls.branchData;
-    let lData = ls.leafData;
-    // Set up instanced rendering data arrays here.
     let colorsArray = [];
     let col1Array = [];
     let col2Array = [];
@@ -6133,7 +6121,7 @@ function loadScene() {
     col1Array = [5, 0, 0, 0];
     col2Array = [0, 5, 0, 0];
     col3Array = [0, 0, 5, 0];
-    col4Array = [0, -25, 0, 1];
+    col4Array = [0, -30, 0, 1];
     let colors = new Float32Array(colorsArray);
     let col1 = new Float32Array(col1Array);
     let col2 = new Float32Array(col2Array);
@@ -6141,6 +6129,27 @@ function loadScene() {
     let col4 = new Float32Array(col4Array);
     dirt.setInstanceVBOs(colors, col1, col2, col3, col4);
     dirt.setNumInstances(1);
+}
+function loadScene() {
+    // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
+    let branchobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/branch.obj');
+    branch = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](branchobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+    branch.create();
+    // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
+    let leafobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/leaf.obj');
+    leaf = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](leafobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+    leaf.create();
+    // lsystem
+    let ls = new __WEBPACK_IMPORTED_MODULE_9__lsystem_LSystem__["a" /* default */](axiom, iterations, scaleTrack, wilt);
+    ls.parseLSystem();
+    let bData = ls.branchData;
+    let lData = ls.leafData;
+    // Set up instanced rendering data arrays here.
+    let colorsArray = [];
+    let col1Array = [];
+    let col2Array = [];
+    let col3Array = [];
+    let col4Array = [];
     // draw branches
     colorsArray = [];
     col1Array = [];
@@ -6168,16 +6177,24 @@ function loadScene() {
         col4Array.push(t[14]);
         col4Array.push(t[15]);
         // color data
-        colorsArray.push(76.0 / 255.0);
-        colorsArray.push(56.0 / 255.0);
-        colorsArray.push(28.0 / 255.0);
-        colorsArray.push(1.0);
+        if (!wilt) {
+            colorsArray.push(76.0 / 255.0);
+            colorsArray.push(56.0 / 255.0);
+            colorsArray.push(28.0 / 255.0);
+            colorsArray.push(1.0);
+        }
+        else {
+            colorsArray.push(86.0 / 255.0);
+            colorsArray.push(81.0 / 255.0);
+            colorsArray.push(74.0 / 255.0);
+            colorsArray.push(1.0);
+        }
     }
-    colors = new Float32Array(colorsArray);
-    col1 = new Float32Array(col1Array);
-    col2 = new Float32Array(col2Array);
-    col3 = new Float32Array(col3Array);
-    col4 = new Float32Array(col4Array);
+    let colors = new Float32Array(colorsArray);
+    let col1 = new Float32Array(col1Array);
+    let col2 = new Float32Array(col2Array);
+    let col3 = new Float32Array(col3Array);
+    let col4 = new Float32Array(col4Array);
     branch.setInstanceVBOs(colors, col1, col2, col3, col4);
     branch.setNumInstances(bData.length);
     // draw leaves
@@ -6186,7 +6203,7 @@ function loadScene() {
     col2Array = [];
     col3Array = [];
     col4Array = [];
-    console.log("leaves: " + lData.length);
+    // console.log("leaves: " + lData.length);
     for (let i = 0; i < lData.length; i++) {
         let t = lData[i];
         // console.log(t);
@@ -6208,10 +6225,18 @@ function loadScene() {
         col4Array.push(t[14]);
         col4Array.push(t[15]);
         // color data
-        colorsArray.push(66.0 / 255.0);
-        colorsArray.push(124.0 / 255.0);
-        colorsArray.push(68.0 / 255.0);
-        colorsArray.push(1.0);
+        if (!wilt) {
+            colorsArray.push(66.0 / 255.0);
+            colorsArray.push(124.0 / 255.0);
+            colorsArray.push(68.0 / 255.0);
+            colorsArray.push(1.0);
+        }
+        else {
+            colorsArray.push(99.0 / 255.0);
+            colorsArray.push(112.0 / 255.0);
+            colorsArray.push(100.0 / 255.0);
+            colorsArray.push(1.0);
+        }
     }
     colors = new Float32Array(colorsArray);
     col1 = new Float32Array(col1Array);
@@ -6241,6 +6266,7 @@ function updatePlantHealth(h) {
 function waterPlant() {
     plantHealth = 100;
     updatePlantHealth(100);
+    wilt = false;
 }
 function main() {
     // Initial display for framerate
@@ -6264,9 +6290,10 @@ function main() {
     // Later, we can import `gl` from `globals.ts` to access it
     Object(__WEBPACK_IMPORTED_MODULE_7__globals__["c" /* setGL */])(gl);
     // Initial call to load scene
+    loadDirt();
     loadScene();
     // const camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
-    const camera = new __WEBPACK_IMPORTED_MODULE_6__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(10, 20, 40), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 20, 0));
+    const camera = new __WEBPACK_IMPORTED_MODULE_6__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(10, 20, 80), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 40, 0));
     const renderer = new __WEBPACK_IMPORTED_MODULE_5__rendering_gl_OpenGLRenderer__["a" /* default */](canvas);
     renderer.setClearColor(0.2, 0.2, 0.2, 1);
     // gl.enable(gl.BLEND);
@@ -6287,6 +6314,7 @@ function main() {
         instancedShader.setTime(time);
         flat.setTime(time++);
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+        // update iteration every 100 ticks
         if (time % 100 == 0) {
             // the plant grows steadily if it is healthy
             if (plantHealth > 50 && iterations < 5) {
@@ -6294,10 +6322,19 @@ function main() {
                 loadScene();
             }
             else if (plantHealth < 50 && iterations > 1) {
+                wilt = true;
                 iterations -= 1;
                 loadScene();
             }
         }
+        // // update for scaling every 20 ticks
+        // if (time % 20 == 0) {
+        //   scaleTrack++;
+        //   scaleTrack = scaleTrack % 6;
+        //   // console.log(scaleTrack);
+        //   loadScene();
+        // }
+        // decrement plant health every 20 ticks
         if (time % 20 == 0 && plantHealth > 0) {
             plantHealth -= 1;
             updatePlantHealth(plantHealth);
@@ -16791,16 +16828,18 @@ class ShaderProgram {
 
 
 class LSystem {
-    constructor(axiom, iterations) {
+    constructor(axiom, iterations, s, w) {
         this.axiom = axiom;
-        console.log("axiom: " + axiom);
+        // console.log("axiom: " + axiom);
         this.iterations = iterations;
-        this.expansionRule = new __WEBPACK_IMPORTED_MODULE_1__ExpansionRule__["a" /* default */]();
-        this.drawingRule = new __WEBPACK_IMPORTED_MODULE_0__DrawingRule__["a" /* default */]();
+        this.wilt = w;
+        this.expansionRule = new __WEBPACK_IMPORTED_MODULE_1__ExpansionRule__["a" /* default */](this.wilt);
+        this.lenscale = s;
+        this.drawingRule = new __WEBPACK_IMPORTED_MODULE_0__DrawingRule__["a" /* default */](this.lenscale, this.wilt);
     }
     parseLSystem() {
         let expandedAxiom = this.expansionRule.expand(this.axiom, this.iterations);
-        console.log("expanded: " + expandedAxiom);
+        // console.log("expanded: " + expandedAxiom);
         this.drawingRule.draw(expandedAxiom);
         this.branchData = this.drawingRule.branchData;
         this.leafData = this.drawingRule.leafData;
@@ -16820,29 +16859,32 @@ class LSystem {
 
 
 class DrawingRule {
-    constructor() {
+    constructor(s, w) {
         this.drawingMap = new Map();
         this.angle = 25.0;
         this.branchData = [];
         this.leafData = [];
         this.initTurtle();
         this.createDrawingRules();
+        this.wilt = w;
+        // this.lenscale = s / 5.0;
+        // console.log("len: " + this.lenscale);
     }
     initTurtle() {
-        this.currTurtle = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].fromValues(0, 0, 0, 1), this.angle, 1);
+        this.currTurtle = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].fromValues(0, 0, 0, 1), this.angle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 1, 1), 0);
         this.turtleStack = [];
     }
     createDrawingRules() {
         // F - move forware
         this.drawingMap.set("F", this.currTurtle.moveForward.bind(this.currTurtle));
         // X - draw leaf
-        this.drawingMap.set("X", this.currTurtle.drawLeafRotate.bind(this.currTurtle));
+        // this.drawingMap.set("X", this.currTurtle.drawLeafRotate.bind(this.currTurtle));
         this.drawingMap.set("L", this.currTurtle.drawLeaf.bind(this.currTurtle));
         // rotations
-        this.drawingMap.set("-", this.currTurtle.rotateForwardPos.bind(this.currTurtle));
-        this.drawingMap.set("+", this.currTurtle.rotateUpPos.bind(this.currTurtle));
+        this.drawingMap.set("+", this.currTurtle.rotateForwardPos.bind(this.currTurtle));
+        this.drawingMap.set("=", this.currTurtle.rotateUpPos.bind(this.currTurtle));
         this.drawingMap.set("~", this.currTurtle.rotateRightPos.bind(this.currTurtle));
-        this.drawingMap.set("=", this.currTurtle.rotateForwardNeg.bind(this.currTurtle));
+        this.drawingMap.set("-", this.currTurtle.rotateForwardNeg.bind(this.currTurtle));
         this.drawingMap.set("_", this.currTurtle.rotateUpNeg.bind(this.currTurtle));
         this.drawingMap.set("*", this.currTurtle.rotateRightNeg.bind(this.currTurtle));
     }
@@ -16853,7 +16895,9 @@ class DrawingRule {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].copy(ori, this.currTurtle.orientation);
         let q = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].copy(q, this.currTurtle.quaternion);
-        let newT = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](pos, ori, q, this.angle, this.currTurtle.scale);
+        let s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].copy(s, this.currTurtle.scale);
+        let newT = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](pos, ori, q, this.angle, s, this.currTurtle.recursionDepth);
         this.turtleStack.push(newT);
     }
     popTurtle() {
@@ -16863,11 +16907,13 @@ class DrawingRule {
             this.currTurtle.orientation = newT.orientation;
             this.currTurtle.quaternion = newT.quaternion;
             this.currTurtle.scale = newT.scale;
+            this.currTurtle.recursionDepth++;
             // console.log(this.currTurtle.getTransformation());
         }
     }
     draw(axiom) {
-        let scale = 1;
+        // let scale : number = 1;
+        // let lenscale: number = 1;
         for (let i = 0; i < axiom.length; i++) {
             let c = axiom[i];
             let drawFunc = this.drawingMap.get(c);
@@ -16883,20 +16929,23 @@ class DrawingRule {
                 drawFunc();
                 let mat;
                 mat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
-                if (c == 'X' || c == 'L') {
-                    mat = this.currTurtle.getTransformation(1);
+                if (c == 'L') {
+                    mat = this.currTurtle.getLeafTransformation(this.wilt);
                     this.leafData.push(mat);
                 }
                 else if (c == 'F') {
-                    mat = this.currTurtle.getTransformation(scale);
-                    this.branchData.push(mat);
-                    scale *= 0.96;
-                    if (scale < 0.02) {
-                        scale = 0.02;
+                    if (this.currTurtle.scale[0] > 0.02) {
+                        this.currTurtle.scale[0] *= 0.97;
+                        this.currTurtle.scale[2] *= 0.97;
                     }
-                }
-                else {
-                    mat = this.currTurtle.getTransformation(scale);
+                    if (this.currTurtle.orientation[1] < 0 && !this.wilt && this.currTurtle.recursionDepth < 4) {
+                        this.currTurtle.pointUp();
+                    }
+                    if (this.wilt) {
+                        // this.currTurtle.pointDownwards();
+                        // console.log(this.currTurtle.orientation[0] + ", " + this.currTurtle.orientation[1] + ", " + this.currTurtle.orientation[2]);
+                    }
+                    mat = this.currTurtle.getTransformation();
                     this.branchData.push(mat);
                 }
             }
@@ -16915,39 +16964,45 @@ class DrawingRule {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(2);
 
 class Turtle {
-    constructor(pos, orient, q, a, s) {
+    // age: number = 0;
+    constructor(pos, orient, q, a, s, rd) {
         this.position = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         this.orientation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         this.quaternion = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
-        this.recursionDepth = 0; // how many [ characters have been found while drawing before ]s
+        this.scale = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         this.position = pos;
         this.orientation = orient;
         this.quaternion = q;
         this.angle = a;
         this.scale = s;
+        this.recursionDepth = rd;
+        // if (ag > this.age) {
+        //   this.age = ag;
+        // }
     }
     moveForward() {
         let s = 2;
         // this.scale *= 0.95;
         let dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].multiply(dist, this.orientation, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(s, s, s));
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].add(this.position, this.position, dist);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].add(this.position, this.position, this.orientation);
         // console.log("move forward: " + this.position);
-    }
-    drawLeafRotate() {
-        // leaf
-        // let sameOrient: vec3 = this.orientation;
-        // let saveQuat: quat = this.quaternion;
-        let r = Math.floor(Math.random() * 361);
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 0, 0), r);
-        r = Math.floor(Math.random() * 361);
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), r);
-        r = Math.floor(Math.random() * 361);
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), r);
-        // this.moveForward();
     }
     drawLeaf() {
         // leaf
+    }
+    pointUp() {
+        this.orientation[1] = -this.orientation[1];
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(this.quaternion, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), this.orientation);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(this.quaternion, this.quaternion);
+    }
+    pointDownwards() {
+        this.orientation[1] = this.orientation[1] - 0.2;
+        if (this.orientation[1] < -1) {
+            this.orientation[1] = -1;
+        }
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(this.quaternion, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), this.orientation);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(this.quaternion, this.quaternion);
     }
     rotate(axis, deg) {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(axis, axis);
@@ -16960,10 +17015,12 @@ class Turtle {
     }
     rotateRightPos() {
         let r = Math.floor(Math.random() * 41);
+        // let r: number = 15;
         this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 0, 0), r);
     }
     rotateRightNeg() {
         let r = Math.floor(Math.random() * 41);
+        // let r: number = 15;
         this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 0, 0), -1.0 * r);
     }
     rotateUpPos() {
@@ -16976,26 +17033,59 @@ class Turtle {
     }
     rotateForwardPos() {
         let r = Math.floor(Math.random() * 41);
+        // let r: number = 15;
         this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), r);
     }
     rotateForwardNeg() {
         let r = Math.floor(Math.random() * 41);
+        // let r: number = 15;
         this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), -1.0 * r);
     }
-    getTransformation(scale) {
-        // transformation = translate * rotate * scale
-        let t = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromTranslation(t, this.position);
-        let r = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromQuat(r, this.quaternion);
-        let s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromScaling(s, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(scale, 1, scale));
-        // let s: vec3 = vec3.create();
-        // vec3.fromValues(1,1,1);
+    getTransformation() {
         let transformMat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
-        // mat4.fromRotationTranslationScale(transformMat, this.quaternion, this.position, s);
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].multiply(transformMat, r, s);
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].multiply(transformMat, t, transformMat);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromRotationTranslationScale(transformMat, this.quaternion, this.position, this.scale);
+        return transformMat;
+    }
+    rotateQuat(axis, deg) {
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(axis, axis);
+        let q = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].setAxisAngle(q, axis, deg * Math.PI / 180.0);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(q, q);
+        let v = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(this.orientation[0], this.orientation[1], this.orientation[2]);
+        v = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].transformQuat(v, v, q);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(v, v);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(q, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), v);
+        return q;
+    }
+    getLeafTransformation(wilt) {
+        let rq = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
+        let rangle = Math.floor(Math.random() * 361);
+        // rq = this.rotateQuat(vec3.fromValues(1,0,0), rangle);
+        // rangle  = Math.floor(Math.random() * 361);
+        // rq = this.rotateQuat(vec3.fromValues(0,1,0), rangle);
+        // rangle = Math.floor(Math.random() * 361);
+        // if (wilt) {
+        //   this.orientation[1] -= 0.05;
+        // }
+        rq = this.rotateQuat(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), rangle);
+        // if (wilt) {
+        //   this.orientation[1] += 0.05;
+        // }
+        let s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        if (!wilt) {
+            let ss = 1 / (4 * this.scale[0]);
+            if (ss > 2) {
+                ss = 2;
+            }
+            s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(ss, ss, ss);
+        }
+        else {
+            // console.log(this.scale[0]);
+            let ss = 1 / (4 * this.scale[0]);
+            s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(ss, ss, ss);
+        }
+        let transformMat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromRotationTranslationScale(transformMat, rq, this.position, s);
         return transformMat;
     }
 }
@@ -17009,34 +17099,40 @@ class Turtle {
 
 "use strict";
 class ExpansionRule {
-    constructor() {
+    constructor(w) {
         // precondition: string;
         // expAction: any;
         // probability: number;
         // new_symbol: string;
         this.grammar = new Map();
+        this.wilt = w;
         this.createExpansionRules();
     }
     createExpansionRules() {
-        this.grammar.set("F", [["F", 0.7],
-            ["FF", 0.3]]);
-        this.grammar.set("X", [["FL[+FX][FL[++FX][~~FLX][-FX]][--FLX][~FX]", 0.5],
-            ["FL[_FX][FL[__FX][**FLX][=FX]][==FLX][*FX]", 0.5]]);
-        // this.grammar.set("F", [["FF-[-X+F]+[+X-F]", 1.0]]);
-        // this.grammar.set("X", [["FF+[+X]+[-F]", 1.0]]);
         // this.grammar.set("F", [["F", 1.0]]);
-        // this.grammar.set("X", [["F[+FX][F[++FX][~~FX][-FX]][--FX][~FX]", 1.0]]);
+        // this.grammar.set("L", [["F", 1.0]]);
+        // this.grammar.set("X", [["FL[_-X][FL[++FX][~~FLX][*FX]][--FLX][*FX]", 1.0]]);
+        // this.grammar.set("X", [["F[+FX][F[++FX][FX][-FX]][--FX]", 1.0]]);
+        if (!this.wilt) {
+            this.grammar.set("X", [["FFFL[+FFF+FFF-FF=FFX[X[X]]FFFF_FFXL][-FFF~F*FFLX[X[XL]]]L", 1.0]]);
+        }
+        else {
+            this.grammar.set("X", [["FFL[+FF-FF+FF=FFX[X[X]]FFF=FXL][-FF~F~FFLX[X[X]]]L", 1.0]]);
+        }
     }
     map(str, xi) {
+        let ret = "";
         if (this.grammar.has(str)) {
             let sumprob = 0;
             let probs = this.grammar.get(str);
             for (let i = 0; i < probs.length; i++) {
                 sumprob += probs[i][1];
                 if (xi <= sumprob) {
-                    return probs[i][0];
+                    ret += probs[i][0];
+                    break;
                 }
             }
+            return ret;
         }
         else
             return "";
@@ -17047,6 +17143,10 @@ class ExpansionRule {
             let exp = "";
             for (let j = 0; j < ret.length; j++) {
                 let c = ret.charAt(j);
+                if (!this.grammar.has(c)) {
+                    exp += c;
+                    continue;
+                }
                 exp += this.map(c, Math.random());
             }
             ret = exp;
@@ -17127,7 +17227,7 @@ class Mesh extends __WEBPACK_IMPORTED_MODULE_1__rendering_gl_Drawable__["a" /* d
         // gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
         __WEBPACK_IMPORTED_MODULE_2__globals__["a" /* gl */].bindBuffer(__WEBPACK_IMPORTED_MODULE_2__globals__["a" /* gl */].ARRAY_BUFFER, this.bufUV);
         __WEBPACK_IMPORTED_MODULE_2__globals__["a" /* gl */].bufferData(__WEBPACK_IMPORTED_MODULE_2__globals__["a" /* gl */].ARRAY_BUFFER, this.uvs, __WEBPACK_IMPORTED_MODULE_2__globals__["a" /* gl */].STATIC_DRAW);
-        console.log(`Created Mesh from OBJ`);
+        // console.log(`Created Mesh from OBJ`);
         this.objString = ""; // hacky clear
     }
     setInstanceVBOs(colors, col1, col2, col3, col4) {
