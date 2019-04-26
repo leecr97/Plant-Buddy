@@ -6444,7 +6444,7 @@ function main() {
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         // update iteration every 100 ticks
         if (plantAlive && !paused) {
-            if (time % 50 == 0) {
+            if (time % 100 == 0) {
                 // the plant grows steadily if it is healthy
                 if (plantHealth > 50 && iterations < 5) {
                     iterations += 1;
