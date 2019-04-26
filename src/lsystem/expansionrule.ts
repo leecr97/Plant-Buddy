@@ -1,11 +1,12 @@
 export default class ExpansionRule {
-    grammar: Map<string, Array<[string, number]>> = new Map<string, Array<[string, number]>>();
+    grammar: Map<string, Array<[string, number]>>;
     wilt: boolean;
     plantType: number;
 
     constructor(w: boolean, pt: number) {
         this.wilt = w;
         this.plantType = pt;
+        this.grammar = new Map<string, Array<[string, number]>>();
         this.createExpansionRules();
     }
 
@@ -17,41 +18,32 @@ export default class ExpansionRule {
         
         if (this.plantType == 0) { // tree
             if (!this.wilt) {
-                // this.grammar.set("F", [["FF", 1.0]]);
-                this.grammar.set("X", [["FFF[_FFFF=FFFFFX]=[=FFFFF__FFFFX]~[*FFFFF~~FFFFX]", 1.0]]);
-                // "FFFL[+FFFL+FFFL-FLF=FLFX[X[XL]]FFFFL_FFXL][-FFLF~F*FFLX[X[XL]]]L"
-                // "LX[=+L][=-L][-_-L]S[=+L][++_L][-_L]"
-                // "[=FLX][_FLX]F"
-                // "F[=FXL][F[==FXL][FXL][_FXL]][__FXL]"
-                // "F[=FFXL][FF[==FFXL][FFXL][_FFXL]][__FFXL]"
-                // "FFFL[~FFFL~FFFL*FLF=FLFX[X[XL]]FFFFL_FFXL][*FFLF~F*FFLX[X[XL]]]L"
+                this.grammar.set("X", [["FFFL[=FFLFL~FFLL[XLL]FLL][_FLLF=FLFLXLL][XF_FL_FFLLXLL][*FLLF[XLL]L~F*FLXLL]", 1.0]]);
             }
             else {
-                this.grammar.set("X", [["FFL[+FF-FF+FF=FFX[X[X]]FFF=FXL][-FF~F~FFLX[X[X]]]L", 1.0]]);
+                // this.grammar.set("X", [["FFL[+FF-FF+FF=FFX[X[X]]FFF=FXL][-FF~F~FFLX[X[X]]]L", 1.0]]);
             }
         }
         else if (this.plantType == 1) { // palm tree
             if (!this.wilt) {
                 this.grammar.set("F", [["FF", 1.0]]);
-                this.grammar.set("X", [["PX[=+P][=-P][-_-P]S[=+P][++_P][-_P]", 1.0]]);
-                // "PX[*P][~P][~~P]S[*P][**P][~P]"
-                // "PX[=P][_P][__P]S[=P][==P][_P]"
-                // "PX[+P][-P][--P]S[+P][++P][-P]"
+                this.grammar.set("X", [["PX[=+P][=-P][-_-P]T[=+P][++_P][-_P]", 1.0]]);
             }
             else {
-                // this.grammar.set("F", [["F", 1.0]]);
+                this.grammar.set("F", [["", 0.5], ["F", 0.5]]);
+                // this.grammar.set("X", [["PX[=+P][-_-P]T[=+P][-_P]", 1.0]]);
+            }
+        }
+        else if (this.plantType == 2) { // shrub/succulent
+            if (!this.wilt) {
+                this.grammar.set("F", [["J", 1.0]]);
+                this.grammar.set("X", [["S+S+S+S+S+MM-S-S-S-S-SMMX", 1.0]]);
+            }
+            else {
                 // this.grammar.set("X", [["L[+FLX][=FLX][~LX][-FLX][_FLX][*LX]", 1.0]]);
             }
         }
-        else if (this.plantType == 2) { // shrub
-            if (!this.wilt) {
-                this.grammar.set("X", [["LLL[+FLLX][=FLLLX][~FLLX][-FLLLX][_FLLX][*FLLLX]", 1.0]]);
-            }
-            else {
-                this.grammar.set("X", [["L[+FLX][=FLX][~LX][-FLX][_FLX][*LX]", 1.0]]);
-            }
-        }
-        
+        // console.log("grammar: " + this.grammar.size);
     }
 
     map(str: string, xi: number) : string {

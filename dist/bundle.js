@@ -6089,19 +6089,29 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
+    PlantType: 1,
     'Water Your Plant': waterPlant,
+    'Plant Seed': plantSeed,
+    'Pause': pause,
 };
 let square;
 let screenQuad;
 let time = 0.0;
-let axiom = "FFFFFX";
+let axiom = "FFX";
+let expandedAxiom = "";
 let iterations = 0;
 let leaf;
 let branch;
 let dirt;
+let pot;
 let plantHealth = 100;
 let scaleTrack = 5;
 let wilt = false;
+let plantAlive = false;
+let plantType = 1;
+let plantStatus = -1;
+let paused = false;
+let started = false;
 function loadDirt() {
     square = new __WEBPACK_IMPORTED_MODULE_3__geometry_Square__["a" /* default */]();
     square.create();
@@ -6129,21 +6139,88 @@ function loadDirt() {
     let col4 = new Float32Array(col4Array);
     dirt.setInstanceVBOs(colors, col1, col2, col3, col4);
     dirt.setNumInstances(1);
+    let potobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/pot.obj');
+    pot = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](potobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+    pot.create();
+    if (plantType == 2) {
+        // draw pot
+        colorsArray = [178.0 / 255.0, 115.0 / 255.0, 92.0 / 255.0, 1.0];
+        col1Array = [3, 0, 0, 0];
+        col2Array = [0, 3, 0, 0];
+        col3Array = [0, 0, 3, 0];
+        col4Array = [0, -10, 0, 1];
+        colors = new Float32Array(colorsArray);
+        col1 = new Float32Array(col1Array);
+        col2 = new Float32Array(col2Array);
+        col3 = new Float32Array(col3Array);
+        col4 = new Float32Array(col4Array);
+    }
+    else {
+        colorsArray = [178.0 / 255.0, 115.0 / 255.0, 92.0 / 255.0, 1.0];
+        col1Array = [0, 0, 0, 0];
+        col2Array = [0, 0, 0, 0];
+        col3Array = [0, 0, 0, 0];
+        col4Array = [0, -15, 0, 1];
+        colors = new Float32Array(colorsArray);
+        col1 = new Float32Array(col1Array);
+        col2 = new Float32Array(col2Array);
+        col3 = new Float32Array(col3Array);
+        col4 = new Float32Array(col4Array);
+    }
+    pot.setInstanceVBOs(colors, col1, col2, col3, col4);
+    pot.setNumInstances(1);
 }
-function loadScene() {
-    // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
-    let branchobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/branch.obj');
-    branch = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](branchobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
-    branch.create();
-    // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
-    let leafobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/leaf.obj');
-    leaf = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](leafobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
-    leaf.create();
+function loadPlant() {
+    if (plantType == 0) {
+        // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
+        let branchobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/branch.obj');
+        branch = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](branchobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+        branch.create();
+        // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
+        let leafobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/treeleaf.obj');
+        leaf = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](leafobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+        leaf.create();
+    }
+    else if (plantType == 1) {
+        // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
+        let branchobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/palmbranch.obj');
+        branch = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](branchobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+        branch.create();
+        // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
+        let leafobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/palmleaf.obj');
+        leaf = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](leafobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+        leaf.create();
+    }
+    else if (plantType == 2) {
+        // let branchobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/branch.obj');
+        let branchobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/shrubbranch.obj');
+        branch = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](branchobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+        branch.create();
+        // let leafobj: string = readTextFile('https://raw.githubusercontent.com/leecr97/Plant-Buddy/master/src/obj/leaf.obj');
+        let leafobj = Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* readTextFile */])('./src/obj/shrubleaf.obj');
+        leaf = new __WEBPACK_IMPORTED_MODULE_10__geometry_Mesh__["a" /* default */](leafobj, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0));
+        leaf.create();
+    }
     // lsystem
-    let ls = new __WEBPACK_IMPORTED_MODULE_9__lsystem_LSystem__["a" /* default */](axiom, iterations, scaleTrack, wilt);
+    let currAxiom;
+    if (!wilt) {
+        currAxiom = axiom;
+    }
+    else {
+        currAxiom = expandedAxiom;
+    }
+    let ls = new __WEBPACK_IMPORTED_MODULE_9__lsystem_LSystem__["a" /* default */](currAxiom, iterations, scaleTrack, wilt, plantType);
     ls.parseLSystem();
+    if (!wilt) {
+        expandedAxiom = ls.expandedAxiom;
+        // console.log("expanded: " + expandedAxiom);
+    }
     let bData = ls.branchData;
     let lData = ls.leafData;
+    if (!plantAlive) {
+        bData = [];
+        lData = [];
+    }
     // Set up instanced rendering data arrays here.
     let colorsArray = [];
     let col1Array = [];
@@ -6156,38 +6233,40 @@ function loadScene() {
     col2Array = [];
     col3Array = [];
     col4Array = [];
-    for (let i = 0; i < bData.length; i++) {
-        let t = bData[i];
-        // console.log(t);
-        // column data
-        col1Array.push(t[0]);
-        col1Array.push(t[1]);
-        col1Array.push(t[2]);
-        col1Array.push(t[3]);
-        col2Array.push(t[4]);
-        col2Array.push(t[5]);
-        col2Array.push(t[6]);
-        col2Array.push(t[7]);
-        col3Array.push(t[8]);
-        col3Array.push(t[9]);
-        col3Array.push(t[10]);
-        col3Array.push(t[11]);
-        col4Array.push(t[12]);
-        col4Array.push(t[13]);
-        col4Array.push(t[14]);
-        col4Array.push(t[15]);
-        // color data
-        if (!wilt) {
-            colorsArray.push(76.0 / 255.0);
-            colorsArray.push(56.0 / 255.0);
-            colorsArray.push(28.0 / 255.0);
-            colorsArray.push(1.0);
-        }
-        else {
-            colorsArray.push(86.0 / 255.0);
-            colorsArray.push(81.0 / 255.0);
-            colorsArray.push(74.0 / 255.0);
-            colorsArray.push(1.0);
+    if (plantType != 2) {
+        for (let i = 0; i < bData.length; i++) {
+            let t = bData[i];
+            // console.log(t);
+            // column data
+            col1Array.push(t[0]);
+            col1Array.push(t[1]);
+            col1Array.push(t[2]);
+            col1Array.push(t[3]);
+            col2Array.push(t[4]);
+            col2Array.push(t[5]);
+            col2Array.push(t[6]);
+            col2Array.push(t[7]);
+            col3Array.push(t[8]);
+            col3Array.push(t[9]);
+            col3Array.push(t[10]);
+            col3Array.push(t[11]);
+            col4Array.push(t[12]);
+            col4Array.push(t[13]);
+            col4Array.push(t[14]);
+            col4Array.push(t[15]);
+            // color data
+            if (!wilt) {
+                colorsArray.push(76.0 / 255.0);
+                colorsArray.push(56.0 / 255.0);
+                colorsArray.push(28.0 / 255.0);
+                colorsArray.push(1.0);
+            }
+            else {
+                colorsArray.push(86.0 / 255.0);
+                colorsArray.push(81.0 / 255.0);
+                colorsArray.push(74.0 / 255.0);
+                colorsArray.push(1.0);
+            }
         }
     }
     let colors = new Float32Array(colorsArray);
@@ -6246,27 +6325,69 @@ function loadScene() {
     leaf.setInstanceVBOs(colors, col1, col2, col3, col4);
     leaf.setNumInstances(lData.length);
 }
-function displayPlantHealth() {
+function makePlantStatusBar() {
     var container = document.createElement('div');
-    container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
+    container.style.cssText = 'position:absolute; top:0; left:0; cursor:pointer; opacity:0.9; z-index:5000;';
     var panel = document.createElement('canvas');
     panel.id = "minicanvas";
     var context = panel.getContext('2d');
-    context.font = "30px Arial";
-    context.fillText('Plant Health: ', 10, 50);
+    context.font = "15px Arial";
+    context.fillText('Plant Health: ', 50, 40);
     container.appendChild(panel);
     document.body.appendChild(container);
 }
-function updatePlantHealth(h) {
+function updatePlantStatus(status) {
+    // health
     var panel = document.getElementById('minicanvas');
     var context = panel.getContext('2d');
-    context.clearRect(195, 20, 150, 50);
-    context.fillText(plantHealth.toString(), 200, 50);
+    context.clearRect(195, 20, 150, 40);
+    context.beginPath();
+    context.fillText(plantHealth.toString(), 200, 40);
+    // status
+    // 1 = alive. 2 = wilting. 0 = dead.
+    if (status != plantStatus) {
+        plantStatus = status;
+        if (plantHealth > 50) {
+            context.clearRect(10, 50, 400, 100);
+            context.fillText('Your Plant is doing well! ^_^', 50, 90);
+        }
+        else if (plantHealth > 0) {
+            context.clearRect(10, 50, 400, 100);
+            context.fillText('Your Plant is wilting! >_<', 50, 90);
+            context.fillText('Water it to restore its health!', 50, 140);
+        }
+        else if (plantHealth <= 0) {
+            context.clearRect(10, 50, 400, 100);
+            context.fillText('Your Plant has died... x_x', 50, 90);
+            context.fillText('Plant a new seed to start over!', 50, 140);
+        }
+    }
+    context.closePath();
 }
 function waterPlant() {
+    console.log('water plant');
     plantHealth = 100;
-    updatePlantHealth(100);
+    updatePlantStatus(1);
     wilt = false;
+}
+function plantSeed() {
+    if (!started) {
+        started = true;
+        makePlantStatusBar();
+        paused = false;
+    }
+    if (!plantAlive) {
+        console.log('plant seed');
+        plantAlive = true;
+        waterPlant();
+        loadPlant();
+    }
+    else {
+        // console.log("");
+    }
+}
+function pause() {
+    paused = !paused;
 }
 function main() {
     // Initial display for framerate
@@ -6276,10 +6397,14 @@ function main() {
     // stats.domElement.style.left = '0px';
     // stats.domElement.style.top = '0px';
     // document.body.appendChild(stats.domElement);
-    displayPlantHealth();
+    // makePlantStatusBar();
     // Add controls to the gui
     const gui = new __WEBPACK_IMPORTED_MODULE_2_dat_gui__["GUI"]();
+    gui.add(controls, 'PlantType', { Tree: 0, 'Palm Tree': 1, Shrub: 2 });
     gui.add(controls, 'Water Your Plant');
+    gui.add(controls, 'Plant Seed');
+    gui.add(controls, 'Pause');
+    gui.closed = true;
     // get canvas and webgl context
     const canvas = document.getElementById('canvas');
     const gl = canvas.getContext('webgl2');
@@ -6291,7 +6416,7 @@ function main() {
     Object(__WEBPACK_IMPORTED_MODULE_7__globals__["c" /* setGL */])(gl);
     // Initial call to load scene
     loadDirt();
-    loadScene();
+    loadPlant();
     // const camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
     const camera = new __WEBPACK_IMPORTED_MODULE_6__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(10, 20, 80), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 40, 0));
     const renderer = new __WEBPACK_IMPORTED_MODULE_5__rendering_gl_OpenGLRenderer__["a" /* default */](canvas);
@@ -6309,42 +6434,64 @@ function main() {
     ]);
     // This function will be called every frame
     function tick() {
+        if (paused) {
+            return;
+        }
         camera.update();
         stats.begin();
         instancedShader.setTime(time);
         flat.setTime(time++);
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         // update iteration every 100 ticks
-        if (time % 100 == 0) {
-            // the plant grows steadily if it is healthy
-            if (plantHealth > 50 && iterations < 5) {
-                iterations += 1;
-                loadScene();
+        if (plantAlive && !paused) {
+            if (time % 50 == 0) {
+                // the plant grows steadily if it is healthy
+                if (plantHealth > 50 && iterations < 5) {
+                    iterations += 1;
+                    loadPlant();
+                }
+                else if (plantHealth < 50 && iterations > 1) {
+                    wilt = true;
+                    iterations -= 1;
+                    loadPlant();
+                }
             }
-            else if (plantHealth < 50 && iterations > 1) {
-                wilt = true;
-                iterations -= 1;
-                loadScene();
+            // // update for scaling every 20 ticks
+            // if (time % 20 == 0) {
+            //   scaleTrack++;
+            //   scaleTrack = scaleTrack % 6;
+            //   // console.log(scaleTrack);
+            //   loadPlant();
+            // }
+            // decrement plant health every 20 ticks
+            if (time % 20 == 0 && plantHealth > 0) {
+                plantHealth -= 1;
+                let status = 1;
+                if (plantHealth > 0 && plantHealth < 50) {
+                    status = 2;
+                }
+                else if (plantHealth <= 0) {
+                    status = 0;
+                }
+                updatePlantStatus(status);
+                if (plantHealth == 0) {
+                    plantAlive = false;
+                }
             }
         }
-        // // update for scaling every 20 ticks
-        // if (time % 20 == 0) {
-        //   scaleTrack++;
-        //   scaleTrack = scaleTrack % 6;
-        //   // console.log(scaleTrack);
-        //   loadScene();
-        // }
-        // decrement plant health every 20 ticks
-        if (time % 20 == 0 && plantHealth > 0) {
-            plantHealth -= 1;
-            updatePlantHealth(plantHealth);
+        if (plantType != controls.PlantType) {
+            plantType = controls.PlantType;
+            loadDirt();
+            loadPlant();
         }
+        // if (plantStatus)
         renderer.clear();
         renderer.render(camera, flat, [screenQuad]);
         renderer.render(camera, instancedShader, [
             dirt,
             branch,
             leaf,
+            pot,
         ]);
         stats.end();
         // Tell the browser to call `tick` again whenever it renders a new frame
@@ -16828,19 +16975,25 @@ class ShaderProgram {
 
 
 class LSystem {
-    constructor(axiom, iterations, s, w) {
+    constructor(axiom, iterations, s, w, pt) {
         this.axiom = axiom;
         // console.log("axiom: " + axiom);
         this.iterations = iterations;
         this.wilt = w;
-        this.expansionRule = new __WEBPACK_IMPORTED_MODULE_1__ExpansionRule__["a" /* default */](this.wilt);
+        this.plantType = pt;
+        this.expansionRule = new __WEBPACK_IMPORTED_MODULE_1__ExpansionRule__["a" /* default */](this.wilt, this.plantType);
         this.lenscale = s;
         this.drawingRule = new __WEBPACK_IMPORTED_MODULE_0__DrawingRule__["a" /* default */](this.lenscale, this.wilt);
+        this.branchData = [];
+        this.leafData = [];
+        this.expandedAxiom = "";
     }
     parseLSystem() {
+        // console.log("ax: " + this.axiom);
         let expandedAxiom = this.expansionRule.expand(this.axiom, this.iterations);
+        this.expandedAxiom = expandedAxiom;
         // console.log("expanded: " + expandedAxiom);
-        this.drawingRule.draw(expandedAxiom);
+        this.drawingRule.draw(expandedAxiom, this.iterations);
         this.branchData = this.drawingRule.branchData;
         this.leafData = this.drawingRule.leafData;
     }
@@ -16871,15 +17024,23 @@ class DrawingRule {
         // console.log("len: " + this.lenscale);
     }
     initTurtle() {
-        this.currTurtle = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].fromValues(0, 0, 0, 1), this.angle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 1, 1), 0);
+        this.currTurtle = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].fromValues(0, 0, 0, 1), this.angle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 1, 1), 0, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 0, 0));
         this.turtleStack = [];
     }
     createDrawingRules() {
-        // F - move forware
+        // F - move forward and draw branch
         this.drawingMap.set("F", this.currTurtle.moveForward.bind(this.currTurtle));
-        // X - draw leaf
+        // T - step forward without drawing branch
+        this.drawingMap.set("T", this.currTurtle.stepForward.bind(this.currTurtle));
+        // M - step forward a small amount without drawing branch
+        this.drawingMap.set("M", this.currTurtle.stepForwardSmall.bind(this.currTurtle));
+        // J - jump forward a large amount
+        this.drawingMap.set("J", this.currTurtle.jumpForward.bind(this.currTurtle));
+        // L, P, S - draw leaf
         // this.drawingMap.set("X", this.currTurtle.drawLeafRotate.bind(this.currTurtle));
         this.drawingMap.set("L", this.currTurtle.drawLeaf.bind(this.currTurtle));
+        this.drawingMap.set("P", this.currTurtle.drawPalmLeaf.bind(this.currTurtle));
+        this.drawingMap.set("S", this.currTurtle.drawShrubLeaf.bind(this.currTurtle));
         // rotations
         this.drawingMap.set("+", this.currTurtle.rotateForwardPos.bind(this.currTurtle));
         this.drawingMap.set("=", this.currTurtle.rotateUpPos.bind(this.currTurtle));
@@ -16897,7 +17058,13 @@ class DrawingRule {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].copy(q, this.currTurtle.quaternion);
         let s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].copy(s, this.currTurtle.scale);
-        let newT = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](pos, ori, q, this.angle, s, this.currTurtle.recursionDepth);
+        let f = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].copy(f, this.currTurtle.forward);
+        let u = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].copy(u, this.currTurtle.up);
+        let r = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].copy(r, this.currTurtle.right);
+        let newT = new __WEBPACK_IMPORTED_MODULE_1__Turtle__["a" /* default */](pos, ori, q, this.angle, s, this.currTurtle.recursionDepth, f, u, r);
         this.turtleStack.push(newT);
     }
     popTurtle() {
@@ -16908,10 +17075,14 @@ class DrawingRule {
             this.currTurtle.quaternion = newT.quaternion;
             this.currTurtle.scale = newT.scale;
             this.currTurtle.recursionDepth++;
+            this.currTurtle.angle = newT.angle;
+            // this.currTurtle.forward = newT.forward;
+            // this.currTurtle.up = newT.up;
+            // this.currTurtle.right = newT.right;
             // console.log(this.currTurtle.getTransformation());
         }
     }
-    draw(axiom) {
+    draw(axiom, iterations) {
         // let scale : number = 1;
         // let lenscale: number = 1;
         for (let i = 0; i < axiom.length; i++) {
@@ -16927,23 +17098,41 @@ class DrawingRule {
             // drawing stuff
             if (drawFunc) {
                 drawFunc();
+                // console.log("depth: " + this.currTurtle.recursionDepth);
                 let mat;
                 mat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
                 if (c == 'L') {
-                    mat = this.currTurtle.getLeafTransformation(this.wilt);
+                    mat = this.currTurtle.getLeafTransformation(this.wilt, false, false);
+                    this.leafData.push(mat);
+                }
+                else if (c == 'P') {
+                    mat = this.currTurtle.getLeafTransformation(this.wilt, true, false);
+                    this.leafData.push(mat);
+                }
+                else if (c == 'S') {
+                    if (this.currTurtle.scale[0] > 0.02) {
+                        this.currTurtle.scale[0] *= 0.97;
+                        this.currTurtle.scale[1] *= 0.97;
+                        this.currTurtle.scale[2] *= 0.97;
+                    }
+                    mat = this.currTurtle.getLeafTransformation(this.wilt, true, true);
                     this.leafData.push(mat);
                 }
                 else if (c == 'F') {
-                    if (this.currTurtle.scale[0] > 0.02) {
+                    if (this.currTurtle.scale[0] > 0.01) {
                         this.currTurtle.scale[0] *= 0.97;
+                        this.currTurtle.scale[1] *= 0.97;
                         this.currTurtle.scale[2] *= 0.97;
                     }
-                    if (this.currTurtle.orientation[1] < 0 && !this.wilt && this.currTurtle.recursionDepth < 4) {
+                    if (this.currTurtle.orientation[1] < 0 && !this.wilt) {
                         this.currTurtle.pointUp();
                     }
                     if (this.wilt) {
-                        // this.currTurtle.pointDownwards();
-                        // console.log(this.currTurtle.orientation[0] + ", " + this.currTurtle.orientation[1] + ", " + this.currTurtle.orientation[2]);
+                        // if (this.currTurtle.scale[0] > 0.01) {
+                        //     this.currTurtle.scale[0] *= 0.9;
+                        //     this.currTurtle.scale[1] *= 0.9;
+                        //     this.currTurtle.scale[2] *= 0.9;
+                        // }
                     }
                     mat = this.currTurtle.getTransformation();
                     this.branchData.push(mat);
@@ -16964,18 +17153,19 @@ class DrawingRule {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(2);
 
 class Turtle {
-    // age: number = 0;
-    constructor(pos, orient, q, a, s, rd) {
+    constructor(pos, ori, q, a, s, rd, f, u, r) {
         this.position = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
-        this.orientation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         this.quaternion = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
         this.scale = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
         this.position = pos;
-        this.orientation = orient;
+        this.orientation = ori;
         this.quaternion = q;
         this.angle = a;
         this.scale = s;
         this.recursionDepth = rd;
+        this.forward = f;
+        this.up = u;
+        this.right = r;
         // if (ag > this.age) {
         //   this.age = ag;
         // }
@@ -16988,10 +17178,39 @@ class Turtle {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].add(this.position, this.position, this.orientation);
         // console.log("move forward: " + this.position);
     }
+    stepForward() {
+        let s = this.scale[0];
+        // this.scale *= 0.95;
+        let dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].multiply(dist, this.orientation, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(s, s, s));
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].add(this.position, this.position, dist);
+        // console.log("move forward: " + this.position);
+    }
+    stepForwardSmall() {
+        let s = 0.3;
+        let dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].multiply(dist, this.orientation, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(s, s, s));
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].add(this.position, this.position, dist);
+        // console.log("move forward: " + this.position);
+    }
+    jumpForward() {
+        let s = 6.9; // nice
+        let dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].multiply(dist, this.orientation, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(s, s, s));
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].add(this.position, this.position, dist);
+        // console.log("move forward: " + this.position);
+    }
     drawLeaf() {
         // leaf
     }
+    drawPalmLeaf() {
+        // palm leaf
+    }
+    drawShrubLeaf() {
+        // shrub/succulent leaf
+    }
     pointUp() {
+        // console.log("point up");
         this.orientation[1] = -this.orientation[1];
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(this.quaternion, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), this.orientation);
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(this.quaternion, this.quaternion);
@@ -17004,14 +17223,66 @@ class Turtle {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(this.quaternion, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), this.orientation);
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(this.quaternion, this.quaternion);
     }
+    rotateAboutForward(deg) {
+        let q = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].setAxisAngle(q, this.forward, deg * Math.PI / 180.0);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].transformQuat(this.up, this.up, q);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(this.up, this.up);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].transformQuat(this.right, this.right, q);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(this.right, this.right);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(this.quaternion, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 0, 0), this.right);
+        // console.log("forward rot quat: " + this.quaternion);
+    }
+    // rotateAboutUp(deg: number) {
+    //   let q: quat = quat.create();
+    //   quat.setAxisAngle(q, this.up, deg * Math.PI / 180.0);
+    //   vec3.transformQuat(this.forward, this.forward, q);
+    //   vec3.normalize(this.forward, this.forward);
+    //   vec3.transformQuat(this.right, this.right, q);
+    //   vec3.normalize(this.right, this.right);
+    //   quat.rotationTo(this.quaternion, vec3.fromValues(0,1,0), this.forward);
+    //   console.log("up rot quat: " + this.quaternion);
+    // }
+    // rotateAboutRight(deg: number) {
+    //   let q: quat = quat.create();
+    //   quat.setAxisAngle(q, this.right, deg * Math.PI / 180.0);
+    //   vec3.transformQuat(this.up, this.up, q);
+    //   vec3.normalize(this.up, this.up);
+    //   vec3.transformQuat(this.forward, this.forward, q);
+    //   vec3.normalize(this.forward, this.forward);
+    //   quat.rotationTo(this.quaternion, vec3.fromValues(0,0,1), this.up);
+    //   // console.log("right rot quat: " + this.quaternion);
+    // }
     rotate(axis, deg) {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(axis, axis);
         let q = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].setAxisAngle(q, axis, deg * Math.PI / 180.0);
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(q, q);
-        this.orientation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].transformQuat(this.orientation, this.orientation, q);
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(this.orientation, this.orientation);
+        let tempOri = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec4 */].fromValues(this.orientation[0], this.orientation[1], this.orientation[2], 0);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec4 */].transformQuat(tempOri, tempOri, q);
+        this.orientation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(tempOri[0], tempOri[1], tempOri[2]);
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(this.quaternion, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), this.orientation);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(this.quaternion, this.quaternion);
+    }
+    rotateForwardPos() {
+        let r = Math.floor(Math.random() * 181);
+        // let r: number = 15;
+        this.rotateAboutForward(r);
+    }
+    rotateForwardNeg() {
+        let r = Math.floor(Math.random() * 181);
+        // let r: number = 15;
+        this.rotateAboutForward(-1.0 * r);
+    }
+    rotateUpPos() {
+        let r = Math.floor(Math.random() * 41);
+        // let r: number = 15;
+        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), r);
+    }
+    rotateUpNeg() {
+        let r = Math.floor(Math.random() * 41);
+        // let r: number = 15;
+        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), -1.0 * r);
     }
     rotateRightPos() {
         let r = Math.floor(Math.random() * 41);
@@ -17023,30 +17294,12 @@ class Turtle {
         // let r: number = 15;
         this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(1, 0, 0), -1.0 * r);
     }
-    rotateUpPos() {
-        let r = Math.floor(Math.random() * 41);
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), r);
-    }
-    rotateUpNeg() {
-        let r = Math.floor(Math.random() * 41);
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), -1.0 * r);
-    }
-    rotateForwardPos() {
-        let r = Math.floor(Math.random() * 41);
-        // let r: number = 15;
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), r);
-    }
-    rotateForwardNeg() {
-        let r = Math.floor(Math.random() * 41);
-        // let r: number = 15;
-        this.rotate(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), -1.0 * r);
-    }
     getTransformation() {
         let transformMat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromRotationTranslationScale(transformMat, this.quaternion, this.position, this.scale);
         return transformMat;
     }
-    rotateQuat(axis, deg) {
+    tempRotateQuat(axis, deg) {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(axis, axis);
         let q = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].setAxisAngle(q, axis, deg * Math.PI / 180.0);
@@ -17057,31 +17310,51 @@ class Turtle {
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(q, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 1, 0), v);
         return q;
     }
-    getLeafTransformation(wilt) {
+    tempRotateRight(deg) {
+        let q = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].setAxisAngle(q, this.right, deg * Math.PI / 180.0);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].normalize(q, q);
+        let tempUp = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(this.up[0], this.up[1], this.up[2]);
+        tempUp = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].transformQuat(tempUp, tempUp, q);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(tempUp, tempUp);
+        let tempFor = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(this.up[0], this.up[1], this.up[2]);
+        tempFor = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].transformQuat(tempFor, tempFor, q);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].normalize(tempFor, tempFor);
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].rotationTo(q, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), tempUp);
+        return q;
+    }
+    getLeafTransformation(wilt, palm, shrub) {
         let rq = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
         let rangle = Math.floor(Math.random() * 361);
-        // rq = this.rotateQuat(vec3.fromValues(1,0,0), rangle);
-        // rangle  = Math.floor(Math.random() * 361);
-        // rq = this.rotateQuat(vec3.fromValues(0,1,0), rangle);
-        // rangle = Math.floor(Math.random() * 361);
-        // if (wilt) {
-        //   this.orientation[1] -= 0.05;
-        // }
-        rq = this.rotateQuat(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), rangle);
-        // if (wilt) {
-        //   this.orientation[1] += 0.05;
-        // }
+        if (palm) {
+            rq = this.quaternion;
+        }
+        else {
+            rq = this.tempRotateQuat(__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(0, 0, 1), rangle);
+        }
+        if (wilt) {
+            let rq2 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].create();
+            let rangle2 = Math.floor(Math.random() * 16);
+            rq2 = this.tempRotateRight(-1.0 * rangle2);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* quat */].multiply(rq, rq, rq2);
+        }
+        // console.log("sc: " + this.scale[0]);
         let s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].create();
-        if (!wilt) {
+        if (shrub && !wilt) {
+            let ss = 3 * this.scale[0];
+            s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(ss, ss, ss);
+        }
+        else if (!wilt) {
             let ss = 1 / (4 * this.scale[0]);
             if (ss > 2) {
                 ss = 2;
             }
             s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(ss, ss, ss);
+            // console.log("s: " + ss);
         }
         else {
             // console.log(this.scale[0]);
-            let ss = 1 / (4 * this.scale[0]);
+            let ss = 2 * this.scale[0];
             s = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec3 */].fromValues(ss, ss, ss);
         }
         let transformMat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
@@ -17099,13 +17372,10 @@ class Turtle {
 
 "use strict";
 class ExpansionRule {
-    constructor(w) {
-        // precondition: string;
-        // expAction: any;
-        // probability: number;
-        // new_symbol: string;
-        this.grammar = new Map();
+    constructor(w, pt) {
         this.wilt = w;
+        this.plantType = pt;
+        this.grammar = new Map();
         this.createExpansionRules();
     }
     createExpansionRules() {
@@ -17113,12 +17383,34 @@ class ExpansionRule {
         // this.grammar.set("L", [["F", 1.0]]);
         // this.grammar.set("X", [["FL[_-X][FL[++FX][~~FLX][*FX]][--FLX][*FX]", 1.0]]);
         // this.grammar.set("X", [["F[+FX][F[++FX][FX][-FX]][--FX]", 1.0]]);
-        if (!this.wilt) {
-            this.grammar.set("X", [["FFFL[+FFF+FFF-FF=FFX[X[X]]FFFF_FFXL][-FFF~F*FFLX[X[XL]]]L", 1.0]]);
+        if (this.plantType == 0) { // tree
+            if (!this.wilt) {
+                this.grammar.set("X", [["FFFL[=FFLFL~FFLL[XLL]FLL][_FLLF=FLFLXLL][XF_FL_FFLLXLL][*FLLF[XLL]L~F*FLXLL]", 1.0]]);
+            }
+            else {
+                // this.grammar.set("X", [["FFL[+FF-FF+FF=FFX[X[X]]FFF=FXL][-FF~F~FFLX[X[X]]]L", 1.0]]);
+            }
         }
-        else {
-            this.grammar.set("X", [["FFL[+FF-FF+FF=FFX[X[X]]FFF=FXL][-FF~F~FFLX[X[X]]]L", 1.0]]);
+        else if (this.plantType == 1) { // palm tree
+            if (!this.wilt) {
+                this.grammar.set("F", [["FF", 1.0]]);
+                this.grammar.set("X", [["PX[=+P][=-P][-_-P]T[=+P][++_P][-_P]", 1.0]]);
+            }
+            else {
+                this.grammar.set("F", [["", 0.5], ["F", 0.5]]);
+                // this.grammar.set("X", [["PX[=+P][-_-P]T[=+P][-_P]", 1.0]]);
+            }
         }
+        else if (this.plantType == 2) { // shrub/succulent
+            if (!this.wilt) {
+                this.grammar.set("F", [["J", 1.0]]);
+                this.grammar.set("X", [["S+S+S+S+S+MM-S-S-S-S-SMMX", 1.0]]);
+            }
+            else {
+                // this.grammar.set("X", [["L[+FLX][=FLX][~LX][-FLX][_FLX][*LX]", 1.0]]);
+            }
+        }
+        // console.log("grammar: " + this.grammar.size);
     }
     map(str, xi) {
         let ret = "";
@@ -17280,7 +17572,7 @@ module.exports = "#version 300 es\nprecision highp float;\n\n// The vertex shade
 /* 78 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\nprecision highp float;\n\nuniform vec3 u_Eye, u_Ref, u_Up;\nuniform vec2 u_Dimensions;\nuniform float u_Time;\n\nin vec2 fs_Pos;\nout vec4 out_Col;\n\n// fbm\nfloat random (in vec2 st) {\n    return fract(sin(dot(st.xy,\n                         vec2(12.9898,78.233)))*\n        43758.5453123);\n}\n\nfloat noise (in vec2 st) {\n    vec2 i = floor(st);\n    vec2 f = fract(st);\n\n    // Four corners in 2D of a tile\n    float a = random(i);\n    float b = random(i + vec2(1.0, 0.0));\n    float c = random(i + vec2(0.0, 1.0));\n    float d = random(i + vec2(1.0, 1.0));\n\n    vec2 u = f * f * (3.0 - 2.0 * f);\n\n    return mix(a, b, u.x) +\n            (c - a)* u.y * (1.0 - u.x) +\n            (d - b) * u.x * u.y;\n}\n\n#define OCTAVES 6\nfloat fbm (in vec2 st) {\n    // Initial values\n    float value = 0.0;\n    float amplitude = .5;\n    float frequency = 0.;\n    //\n    // Loop of octaves\n    for (int i = 0; i < OCTAVES; i++) {\n        value += amplitude * noise(st);\n        st *= 2.;\n        amplitude *= .5;\n    }\n    return value;\n}\n\nvoid generateBG(vec2 pos, out float off) {\n  pos /= 2.0;\n  pos += vec2(0.5, 0.0);\n  off = fbm(pos);\n  off *= 1.5;\n}\n\nfloat sawtooth_wave(float x, float freq, float amplitude) {\n  return (x * freq - floor(x * freq)) * amplitude;\n}\n\nvoid main() {\n  float s = sawtooth_wave(u_Time / 40000.0, 3.14159, 20.0);\n  vec2 sun_pos = fs_Pos.xy - vec2(s, s);\n  float bg;\n  generateBG(sun_pos, bg);\n  vec3 col1 = vec3(255.0, 252.0, 175.0) / 255.0;\n  vec3 col2 = vec3(62.0, 104.0, 57.0) / 255.0;\n  vec3 col = mix(col1, col2, bg);\n\n  out_Col = vec4(col, 1.0);\n  // out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.0, 1.0);\n}\n"
+module.exports = "#version 300 es\nprecision highp float;\n\nuniform vec3 u_Eye, u_Ref, u_Up;\nuniform vec2 u_Dimensions;\nuniform float u_Time;\n\nin vec2 fs_Pos;\nout vec4 out_Col;\n\n// fbm\nfloat random (in vec2 st) {\n    return fract(sin(dot(st.xy,\n                         vec2(12.9898,78.233)))*\n        43758.5453123);\n}\n\nfloat noise (in vec2 st) {\n    vec2 i = floor(st);\n    vec2 f = fract(st);\n\n    // Four corners in 2D of a tile\n    float a = random(i);\n    float b = random(i + vec2(1.0, 0.0));\n    float c = random(i + vec2(0.0, 1.0));\n    float d = random(i + vec2(1.0, 1.0));\n\n    vec2 u = f * f * (3.0 - 2.0 * f);\n\n    return mix(a, b, u.x) +\n            (c - a)* u.y * (1.0 - u.x) +\n            (d - b) * u.x * u.y;\n}\n\n#define OCTAVES 6\nfloat fbm (in vec2 st) {\n    // Initial values\n    float value = 0.0;\n    float amplitude = .5;\n    float frequency = 0.;\n    //\n    // Loop of octaves\n    for (int i = 0; i < OCTAVES; i++) {\n        value += amplitude * noise(st);\n        st *= 2.;\n        amplitude *= .5;\n    }\n    return value;\n}\n\nvoid generateBG(vec2 pos, out float off) {\n  pos /= 2.0;\n  pos += vec2(0.5, 0.0);\n  off = fbm(pos);\n  off *= 1.5;\n}\n\nfloat sawtooth_wave(float x, float freq, float amplitude) {\n  return (x * freq - floor(x * freq)) * amplitude;\n}\n\nvoid main() {\n  float s = sawtooth_wave(u_Time / 40000.0, 3.14159, 20.0);\n  vec2 sun_pos = fs_Pos.xy - vec2(s, s);\n  float bg;\n  generateBG(sun_pos, bg);\n  vec3 col1 = vec3(255.0, 252.0, 175.0) / 255.0;\n  // vec3 col2 = vec3(62.0, 104.0, 57.0) / 255.0;\n  vec3 col2 = vec3(119.0, 228.0, 249.0) / 255.0;\n  vec3 col = mix(col1, col2, bg);\n\n  out_Col = vec4(col, 1.0);\n  // out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.0, 1.0);\n}\n"
 
 /***/ })
 /******/ ]);
